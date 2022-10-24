@@ -3,7 +3,7 @@
 set -euo pipefail
 
 # shellcheck disable=SC2034
-html_content_mock="$(
+spark_archive_html_content_mock="$(
   cat <<'MOCK'
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <html>
