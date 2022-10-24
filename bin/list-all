@@ -2,9 +2,9 @@
 
 set -euo pipefail
 
-PLUGIN_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
+CURRENT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 # shellcheck source=../lib/utils.bash
-source "${PLUGIN_DIR}/../lib/utils.bash"
+source "${CURRENT_DIR}/../lib/utils.bash"
 
 response="$(curl "${DEFAULT_CURL_OPTS[@]}" "${SPARK_ARCHIVE_URL}")"
 
