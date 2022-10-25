@@ -2,8 +2,7 @@
 
 # asdf-spark [![Build](https://github.com/jeffryang24/asdf-spark/actions/workflows/build.yml/badge.svg)](https://github.com/jeffryang24/asdf-spark/actions/workflows/build.yml) [![Lint](https://github.com/jeffryang24/asdf-spark/actions/workflows/lint.yml/badge.svg)](https://github.com/jeffryang24/asdf-spark/actions/workflows/lint.yml)
 
-
-[spark](https://spark.apache.org/docs/latest/) plugin for the [asdf version manager](https://asdf-vm.com).
+[Apache Spark](https://spark.apache.org/docs/latest/) plugin for the [asdf version manager](https://asdf-vm.com).
 
 </div>
 
@@ -16,10 +15,10 @@
 
 # Dependencies
 
-**TODO: adapt this section**
-
-- `bash`, `curl`, `tar`: generic POSIX utilities.
-- `SOME_ENV_VAR`: set this environment variable in your shell config to load the correct version of tool x.
+- `java`: JDK, you can install it using [asdf-java](https://github.com/halcyon/asdf-java) plugin.
+- `bash`, `curl`, `tar`: Generic POSIX utilities.
+- `ASDF_SPARK_HADOOP_VERSION`: Set this environment variable to use custom hadoop version from the Spark archive download page, e.g. `ASDF_SPARK_HADOOP_VERSION=3`
+- `ASDF_SPARK_WITHOUT_HADOOP`: Set this environment variable to download spark binary without hadoop support, e.g. `ASDF_SPARK_WITHOUT_HADOOP=1`
 
 # Install
 
@@ -58,4 +57,4 @@ Contributions of any kind welcome! See the [contributing guide](contributing.md)
 
 # License
 
-See [LICENSE](LICENSE) © [Jeffry Angtoni](https://github.com/jeffryang24/)
+Licensed under [Apache License 2.0](LICENSE).
