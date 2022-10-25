@@ -2,22 +2,26 @@
 
 set -euo pipefail
 
-current_script_path=${BASH_SOURCE[0]}
-plugin_dir=$(dirname "$(dirname "$current_script_path")")
+CURRENT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 
 # shellcheck source=../lib/utils.bash
-source "${plugin_dir}/lib/utils.bash"
+source "${CURRENT_DIR}/../lib/utils.bash"
 
-mkdir -p "$ASDF_DOWNLOAD_PATH"
+mkdir -p "${ASDF_DOWNLOAD_PATH}"
 
-# TODO: Adapt this to proper extension and adapt extracting strategy.
-release_file="$ASDF_DOWNLOAD_PATH/$TOOL_NAME-$ASDF_INSTALL_VERSION.tar.gz"
+spark_archives_url="${SPARK_ARCHIVE_URL}/spark-${ASDF_INSTALL_VERSION}"
+spark_archive_download_page_content="$(curl "${DEFAULT_CURL_OPTS[@]}" "${spark_archives_url}")"
+spark_archive_filename="$(
+  get_release_archive_filename "${ASDF_INSTALL_TYPE}" "${ASDF_INSTALL_VERSION}" "${spark_archive_download_page_content}"
+)"
+spark_archive_filepath="${ASDF_DOWNLOAD_PATH}/${spark_archive_filename}"
+spark_archive_download_url="$(construct_release_archive_url "${ASDF_INSTALL_VERSION}" "${spark_archive_filename}")"
 
 # Download tar.gz file to the download directory
-download_release "$ASDF_INSTALL_VERSION" "$release_file"
+download_archive "${spark_archive_download_url}" "${spark_archive_filepath}"
 
 #  Extract contents of tar.gz file into the download directory
-tar -xzf "$release_file" -C "$ASDF_DOWNLOAD_PATH" --strip-components=1 || fail "Could not extract $release_file"
+tar -xzf "${spark_archive_filepath}" -C "${ASDF_DOWNLOAD_PATH}" --strip-components=1 || fail "Could not extract ${spark_archive_filepath}"
 
 # Remove the tar.gz file since we don't need to keep it
-rm "$release_file"
+rm "${spark_archive_filepath}"

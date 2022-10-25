@@ -9,4 +9,4 @@ source "${CURRENT_DIR}/../lib/utils.bash"
 
 response="$(curl "${DEFAULT_CURL_OPTS[@]}" "${SPARK_ARCHIVE_URL}")"
 
-list_all_versions "${response}"
+list_all_versions "${response}" | xargs
