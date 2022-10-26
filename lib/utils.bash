@@ -203,7 +203,7 @@ install_version() {
 
   (
     mkdir -p "${install_path}"
-    cp -r "${ASDF_DOWNLOAD_PATH}/*" "${install_path}"
+    cp -r "${ASDF_DOWNLOAD_PATH}"/* "${install_path}"
 
     tool_cmd="$(echo "${TOOL_TEST}" | cut -d' ' -f1)"
     [[ -x "${install_path}/bin/${tool_cmd}" ]] || fail "Expected ${install_path}/bin/${tool_cmd} to be executable."
