@@ -9,7 +9,9 @@
 # Contents
 
 - [Dependencies](#dependencies)
+- [Environment Variables](#environment-variables)
 - [Install](#install)
+- [FAQ](#faq)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -17,8 +19,11 @@
 
 - `java`: JDK, you can install it using [asdf-java](https://github.com/halcyon/asdf-java) plugin.
 - `bash`, `curl`, `tar`: Generic POSIX utilities.
-- `ASDF_SPARK_HADOOP_VERSION`: Set this environment variable to use custom hadoop version from the Spark archive download page, e.g. `ASDF_SPARK_HADOOP_VERSION=3`. By default, this plugin will pick the latest hadoop version from the archive page.
-- `ASDF_SPARK_WITHOUT_HADOOP`: Set this environment variable to download spark binary without hadoop support, e.g. `ASDF_SPARK_WITHOUT_HADOOP=1`. By default, this plugin will download spark archive with hadoop support.
+
+# Environment Variables
+
+- `ASDF_SPARK_HADOOP_VERSION`: Set this environment variable to use custom hadoop version from the Spark archive download page, e.g. `ASDF_SPARK_HADOOP_VERSION=3 asdf install spark 3.3.0`. By default, this plugin will pick the latest hadoop version from the archive page if this environment variable is not being set.
+- `ASDF_SPARK_WITHOUT_HADOOP`: Set this environment variable to download spark binary archive without hadoop support, e.g. `ASDF_SPARK_WITHOUT_HADOOP=1 asdf install spark 3.3.0`. By default, this plugin will download spark archive with hadoop support if this environment variable is not being set.
 
 # Install
 
@@ -28,6 +33,8 @@ Plugin:
 asdf plugin add spark
 # or
 asdf plugin add spark https://github.com/jeffryang24/asdf-spark.git
+# or
+asdf plugin add spark git@github.com:jeffryang24/asdf-spark.git
 ```
 
 spark:
@@ -43,11 +50,25 @@ asdf install spark latest
 asdf global spark latest
 
 # Now spark commands are available
-spark --help
+spark-shell --help
 ```
 
 Check [asdf](https://github.com/asdf-vm/asdf) readme for more instructions on how to
 install & manage versions.
+
+# FAQ
+
+## How to set `SPARK_HOME` environment variable?
+
+You can set `SPARK_HOME` environment variable inside your shell configuration file (`.bashrc` for bash, `.zshrc` for zsh, etc)
+using `asdf where` command. Please ensure that you have sourced `asdf` before adding this environment variable.
+
+```shell
+# Source asdf.sh first before exporting the environment variable.
+source $HOME/.asdf/asdf.sh
+
+export SPARK_HOME="$(asdf where spark)"
+```
 
 # Contributing
 
