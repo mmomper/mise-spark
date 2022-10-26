@@ -110,7 +110,29 @@ spark-3.3.0-bin-without-hadoop.tgz"
 #region get_release_archive_filename
 @test "get_release_archive_filename: it should return the latest hadoop version URL (ASDF_SPARK_HADOOP_VERSION is not set)" {
   run get_release_archive_filename "version" "${DEFAULT_SPARK_VERSION}" "${spark_330_download_html_content_mock:-}"
-  echo "${output}"
+  [ "${status}" -eq 0 ]
+  [ "${output}" = "spark-${DEFAULT_SPARK_VERSION}-bin-hadoop3.tgz" ]
+}
+
+@test "get_release_archive_filename: it should return the latest hadoop version URL (ASDF_SPARK_HADOOP_VERSION is not set with explicit ASDF_SPARK_WITHOUT_HADOOP)" {
+  # Explicitly set the ASDF_SPARK_WITHOUT_HADOOP env variable.
+  ASDF_SPARK_WITHOUT_HADOOP=no run get_release_archive_filename "version" "${DEFAULT_SPARK_VERSION}" "${spark_330_download_html_content_mock:-}"
+  [ "${status}" -eq 0 ]
+  [ "${output}" = "spark-${DEFAULT_SPARK_VERSION}-bin-hadoop3.tgz" ]
+
+  ASDF_SPARK_WITHOUT_HADOOP=n run get_release_archive_filename "version" "${DEFAULT_SPARK_VERSION}" "${spark_330_download_html_content_mock:-}"
+  [ "${status}" -eq 0 ]
+  [ "${output}" = "spark-${DEFAULT_SPARK_VERSION}-bin-hadoop3.tgz" ]
+
+  ASDF_SPARK_WITHOUT_HADOOP=false run get_release_archive_filename "version" "${DEFAULT_SPARK_VERSION}" "${spark_330_download_html_content_mock:-}"
+  [ "${status}" -eq 0 ]
+  [ "${output}" = "spark-${DEFAULT_SPARK_VERSION}-bin-hadoop3.tgz" ]
+
+  ASDF_SPARK_WITHOUT_HADOOP=f run get_release_archive_filename "version" "${DEFAULT_SPARK_VERSION}" "${spark_330_download_html_content_mock:-}"
+  [ "${status}" -eq 0 ]
+  [ "${output}" = "spark-${DEFAULT_SPARK_VERSION}-bin-hadoop3.tgz" ]
+
+  ASDF_SPARK_WITHOUT_HADOOP=0 run get_release_archive_filename "version" "${DEFAULT_SPARK_VERSION}" "${spark_330_download_html_content_mock:-}"
   [ "${status}" -eq 0 ]
   [ "${output}" = "spark-${DEFAULT_SPARK_VERSION}-bin-hadoop3.tgz" ]
 }
@@ -141,6 +163,18 @@ spark-3.3.0-bin-without-hadoop.tgz"
 
 @test "get_release_archive_filename: it should return without hadoop version URL when ASDF_SPARK_WITHOUT_HADOOP is set" {
   ASDF_SPARK_WITHOUT_HADOOP=1 run get_release_archive_filename "version" "${DEFAULT_SPARK_VERSION}" "${spark_330_download_html_content_mock:-}"
+  [ "${status}" -eq 0 ]
+  [ "${output}" = "spark-${DEFAULT_SPARK_VERSION}-bin-without-hadoop.tgz" ]
+
+  ASDF_SPARK_WITHOUT_HADOOP=yes run get_release_archive_filename "version" "${DEFAULT_SPARK_VERSION}" "${spark_330_download_html_content_mock:-}"
+  [ "${status}" -eq 0 ]
+  [ "${output}" = "spark-${DEFAULT_SPARK_VERSION}-bin-without-hadoop.tgz" ]
+
+  ASDF_SPARK_WITHOUT_HADOOP=t run get_release_archive_filename "version" "${DEFAULT_SPARK_VERSION}" "${spark_330_download_html_content_mock:-}"
+  [ "${status}" -eq 0 ]
+  [ "${output}" = "spark-${DEFAULT_SPARK_VERSION}-bin-without-hadoop.tgz" ]
+
+  ASDF_SPARK_WITHOUT_HADOOP=true run get_release_archive_filename "version" "${DEFAULT_SPARK_VERSION}" "${spark_330_download_html_content_mock:-}"
   [ "${status}" -eq 0 ]
   [ "${output}" = "spark-${DEFAULT_SPARK_VERSION}-bin-without-hadoop.tgz" ]
 }

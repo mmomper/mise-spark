@@ -122,7 +122,7 @@ get_release_archive_filename() {
   available_archives="$(scan_available_archives "${spark_version}" "${archive_download_content}")"
 
   # Get without-hadoop archive filename
-  if [[ ! "${without_hadoop}" =~ [0|f|false] ]]; then
+  if [[ ! "${without_hadoop}" =~ ^([nf0]|no|false)?$ ]]; then
     without_hadoop_archive_filename="$({ grep "spark-${spark_version}-bin-without-hadoop\.tgz" <<<"${available_archives}" || :; } | xargs)"
     if [[ -n "${without_hadoop_archive_filename}" ]]; then
       echo "${without_hadoop_archive_filename}"
