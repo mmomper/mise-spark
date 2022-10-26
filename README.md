@@ -17,8 +17,8 @@
 
 - `java`: JDK, you can install it using [asdf-java](https://github.com/halcyon/asdf-java) plugin.
 - `bash`, `curl`, `tar`: Generic POSIX utilities.
-- `ASDF_SPARK_HADOOP_VERSION`: Set this environment variable to use custom hadoop version from the Spark archive download page, e.g. `ASDF_SPARK_HADOOP_VERSION=3`
-- `ASDF_SPARK_WITHOUT_HADOOP`: Set this environment variable to download spark binary without hadoop support, e.g. `ASDF_SPARK_WITHOUT_HADOOP=1`
+- `ASDF_SPARK_HADOOP_VERSION`: Set this environment variable to use custom hadoop version from the Spark archive download page, e.g. `ASDF_SPARK_HADOOP_VERSION=3`. By default, this plugin will pick the latest hadoop version from the archive page.
+- `ASDF_SPARK_WITHOUT_HADOOP`: Set this environment variable to download spark binary without hadoop support, e.g. `ASDF_SPARK_WITHOUT_HADOOP=1`. By default, this plugin will download spark archive with hadoop support.
 
 # Install
 
