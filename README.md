@@ -30,8 +30,6 @@
 Plugin:
 
 ```shell
-asdf plugin add spark
-# or
 asdf plugin add spark https://github.com/jeffryang24/asdf-spark.git
 # or
 asdf plugin add spark git@github.com:jeffryang24/asdf-spark.git
