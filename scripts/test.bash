@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-exec bats ./test
+exec bats test/
