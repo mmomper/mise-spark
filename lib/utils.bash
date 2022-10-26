@@ -175,7 +175,7 @@ download_archive() {
   local target_filepath="${2:-}"
 
   echo "* Downloading ${target_filepath##*/}..."
-  curl "${DEFAULT_CURL_OPTS[@]}" -o "${target_filepath}" -C - "${download_url}" || fail "Could not download ${download_url}"
+  curl -fSL# -o "${target_filepath}" -C - "${download_url}" || fail "Could not download ${download_url}"
 }
 
 ##################################################################
@@ -205,7 +205,6 @@ install_version() {
     mkdir -p "${install_path}"
     cp -r "${ASDF_DOWNLOAD_PATH}/*" "${install_path}"
 
-    # TODO: Assert spark executable exists.
     tool_cmd="$(echo "${TOOL_TEST}" | cut -d' ' -f1)"
     [[ -x "${install_path}/bin/${tool_cmd}" ]] || fail "Expected ${install_path}/bin/${tool_cmd} to be executable."
 
