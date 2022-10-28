@@ -204,15 +204,17 @@ normalize_checksum() {
 #
 # Arguments:
 #   $1 - Apache Spark version.
-#   $2 - Archive filename.
+#   $2 - Archive filepath.
 # Outputs:
 #   Return a valid checksum value format separated by double space,
 #   e.g. <hash>  <filename>
 ##################################################################
 download_sha_checksum() {
   local spark_version="${1:-}"
-  local archive_filename="${2:-}"
-  local checksum_exts=({sha512,sha})
+  local archive_filepath="${2:-}"
+  local archive_filename="${archive_filepath##*/}"
+  # Some old spark archives use .sha extension instead of .sha512.
+  local checksum_exts=('sha512' 'sha')
   local archive_download_url checksum_content normalized_checksum_content
 
   archive_download_url="$(construct_release_archive_url "${spark_version}" "${archive_filename}")"
@@ -223,13 +225,20 @@ download_sha_checksum() {
     fi
   done
 
+  # Fail-fast if checksum_content is still empty (no checksum available).
+  if [[ -z "${checksum_content}" ]]; then
+    rm "${archive_filepath}"
+    fail "Can't verify archive checksum. If this error persist, then you can set ASDF_SPARK_SKIP_VERIFICATION \
+value to true to skip this verification step."
+  fi
+
   # Normalize downloaded checksum file content.
   normalized_checksum_content="$(normalize_checksum "${checksum_content}")"
   echo "${normalized_checksum_content}"
 }
 
 ##################################################################
-# Validate Apache Spark binary archive file checksum using
+# Verify Apache Spark binary archive file checksum using
 # sha-512 algorithm.
 #
 # Globals:
@@ -241,7 +250,7 @@ download_sha_checksum() {
 #   Return exit status code 0 when the target file checksum matches
 #   the hash from the checksum content.
 ##################################################################
-validate_sha_checksum() {
+verify_sha_checksum() {
   local spark_version="${1:-}"
   local archive_filepath="${2:-}"
   local archive_filename="${archive_filepath##*/}"
@@ -257,7 +266,7 @@ validate_sha_checksum() {
   cd "$(dirname "${archive_filepath}")"
 
   echo "* Verifying ${archive_filename}..."
-  checksum="$(download_sha_checksum "${spark_version}" "${archive_filename}")"
+  checksum="$(download_sha_checksum "${spark_version}" "${archive_filepath}")"
   if ! echo "${checksum}" | shasum --algorithm "${DEFAULT_SHASUM_ALGORITHM}" --check; then
     fail "Checksum validation failed! Abort installation."
   fi
