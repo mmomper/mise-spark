@@ -232,6 +232,8 @@ download_sha_checksum() {
 # Validate Apache Spark binary archive file checksum using
 # sha-512 algorithm.
 #
+# Globals:
+#   ASDF_SPARK_SKIP_VERIFICATION - Skip checksum verification or not.
 # Arguments:
 #   $1 - Apache spark version.
 #   $2 - Archive filepath.
@@ -243,7 +245,13 @@ validate_sha_checksum() {
   local spark_version="${1:-}"
   local archive_filepath="${2:-}"
   local archive_filename="${archive_filename##*/}"
+  local skip_verification="${ASDF_SPARK_SKIP_VERIFICATION:-0}"
   local checksum
+
+  # Fast return if ASDF_SPARK_SKIP_VERIFICATION is set to true.
+  if [[ ! "${skip_verification}" =~ ^([nf0]|no|false)?$ ]]; then
+    return 0
+  fi
 
   # cd into ASDF_DOWNLOAD_PATH
   cd "$(dirname "${archive_filepath}")"
