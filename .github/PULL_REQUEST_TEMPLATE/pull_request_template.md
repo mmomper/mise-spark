@@ -1,6 +1,6 @@
 <!--- Provide a general summary of your changes in the Title above -->
 
-## Description
+# Description
 
 <!--- Describe your changes in detail -->
 
@@ -9,7 +9,7 @@
 <!--- Why is this change required? What problem does it solve? -->
 <!--- If it fixes an open issue, please link to the issue here. -->
 
-## Types of changes
+## Types of Changes
 
 <!--- What types of changes does your code introduce? Put an `x` in all the boxes that apply: -->
 
@@ -17,18 +17,19 @@
 - [ ] New feature (non-breaking change which adds functionality)
 - [ ] Breaking change (fix or feature that would cause existing functionality to change)
 
-## Usage examples
+## Usage Examples
 
 <!--- Provide examples of intended usage -->
 
-## How Has This Been Tested?
+## How has This been Tested?
 
 <!--- Please describe in detail how you tested your changes. -->
 
-## Checklist:
+## Checklist
 
 <!--- Go over all the following points, and put an `x` in all the boxes that apply. -->
 <!--- If you're unsure about any of these, don't hesitate to ask. We're here to help! -->
 
 - [ ] I have updated the documentation accordingly.
 - [ ] I have added tests to cover my changes.
+- [ ] I have linted and formatted the source code using `shellcheck` and `shfmt`.
