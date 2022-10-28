@@ -12,9 +12,3 @@ mkdir -p "${ASDF_DOWNLOAD_PATH}"
 
 # Download and verify tar.gz file inside the download directory.
 download_archive "${ASDF_INSTALL_TYPE}" "${ASDF_DOWNLOAD_PATH}" "${ASDF_INSTALL_VERSION}"
-
-#  Extract contents of tar.gz file into the download directory.
-tar -xzf "${spark_archive_filepath}" -C "${ASDF_DOWNLOAD_PATH}" --strip-components=1 || fail "Could not extract ${spark_archive_filepath}"
-
-# Remove the tar.gz file since we don't need to keep it.
-rm "${spark_archive_filepath}"
