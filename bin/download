@@ -17,11 +17,14 @@ spark_archive_filename="$(
 spark_archive_filepath="${ASDF_DOWNLOAD_PATH}/${spark_archive_filename}"
 spark_archive_download_url="$(construct_release_archive_url "${ASDF_INSTALL_VERSION}" "${spark_archive_filename}")"
 
-# Download tar.gz file to the download directory
+# Download tar.gz file to the download directory.
 download_archive "${spark_archive_download_url}" "${spark_archive_filepath}"
 
-#  Extract contents of tar.gz file into the download directory
+# Validate archive before extracting.
+validate_sha_checksum "${ASDF_INSTALL_VERSION}" "${spark_archive_filepath}"
+
+#  Extract contents of tar.gz file into the download directory.
 tar -xzf "${spark_archive_filepath}" -C "${ASDF_DOWNLOAD_PATH}" --strip-components=1 || fail "Could not extract ${spark_archive_filepath}"
 
-# Remove the tar.gz file since we don't need to keep it
+# Remove the tar.gz file since we don't need to keep it.
 rm "${spark_archive_filepath}"

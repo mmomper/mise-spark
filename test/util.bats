@@ -7,7 +7,7 @@ set -euo pipefail
 UTIL_TEST_DIR="$(cd "$(dirname "$BATS_TEST_FILENAME")" &>/dev/null && pwd)"
 
 load "${UTIL_TEST_DIR}/../lib/utils.bash"
-load "${UTIL_TEST_DIR}/resources/spark_archive_mock.bash"
+load "${UTIL_TEST_DIR}/resources/mock_wrapper.bash"
 
 # Override DEFAULT_SPARK_VERSION variable for testing purpose
 DEFAULT_SPARK_VERSION='3.3.0'
@@ -186,3 +186,28 @@ spark-3.3.0-bin-without-hadoop.tgz"
   [ "${output}" = "asdf-spark: Apache Spark ${spark_version} does not have without-hadoop archive." ]
 }
 #endregion get_release_archive_filename
+
+#region normalize_checksum
+@test "normalize_checksum: it should get the hash value from the checksum file with colon separated (legacy checksum file)" {
+  run normalize_checksum "${spark_111_sha512_content:-}"
+  local expected_result="77e186130a40886eb7a0a5b434e63dd98b0689d4db873f32fcac3866d41928\
+05a4702fe578894bff31792aa135b2adb899224c38ebe03cf6a53a62a1f6fe3230  spark-1.1.1.tgz"
+  echo "${output}"
+  [ "${status}" -eq 0 ]
+  [ "${output}" = "${expected_result}" ]
+}
+
+@test "normalize_checksum: it should get the hash value from the checksum file with double space separated" {
+  run normalize_checksum "${spark_303_sha512_content:-}"
+  local expected_result="72abf6a414f9a3216537ee0da463baba52f966ded645fd8621c4b77e76249e\
+75075ff9e45d2e4f9c80b22dcb90d4c78518a3fceaf6c03deb00f6c444ebf9618a  spark-3.0.3.tgz"
+  [ "${status}" -eq 0 ]
+  [ "${output}" = "${expected_result}" ]
+}
+
+@test "normalize_checksum: it should return an error message when no valid hash value is found" {
+  run normalize_checksum "Lalalalalalala:NaNaNaNaNa NaNaNa"
+  [ "${status}" -eq 1 ]
+  [ "${output}" = "asdf-spark: Checksum content is invalid. Can not parse the hash value." ]
+}
+#endregion normalize_checksum

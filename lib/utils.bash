@@ -4,13 +4,14 @@
 
 set -euo pipefail
 
-GH_REPO="https://github.com/apache/spark"
 SPARK_ARCHIVE_URL='https://archive.apache.org/dist/spark'
 TOOL_NAME='spark'
 TOOL_TEST='spark-shell --help'
 
+# shellcheck disable=SC2034
 DEFAULT_CURL_OPTS=(-fsSL)
 DEFAULT_SPARK_VERSION='3.3.0'
+DEFAULT_SHASUM_ALGORITHM=512
 
 ##################################################
 # Print error message with generalized format.
@@ -156,6 +157,100 @@ get_release_archive_filename() {
     echo "${available_archives_array[$((available_archives_array_length - 1))]}"
   else
     fail "Unfortunately, current Apache Spark version does not provide hadoop support prebuilt binary archive."
+  fi
+}
+
+##################################################################
+# Normalize checksum file content into standard format. Somehow old
+# checksum file use invalid checksum file format (not using the
+# double-space separated format), so we need to parse and normalize
+# the checksum content format.
+#
+# Arguments:
+#   $1 - Checksum file content.
+# Outputs:
+#   Return double-space separated checksum string,
+#   e.g. <hash>  <filename>
+##################################################################
+normalize_checksum() {
+  local checksum_content="${1:-}"
+
+  # Fast return when the checksum content is empty.
+  if [[ -z "${checksum_content}" ]]; then
+    echo ""
+    return
+  fi
+
+  # If the content already uses double-space separated format (<hash>  <filename>),
+  # then we just return the file content.
+  if echo "${checksum_content}" | grep -Eoq '^[A-Fa-f0-9]+  spark\-(.+)\.tgz$'; then
+    echo "${checksum_content}"
+  # If the content is still using the old checksum format (<filename>: <hash>),
+  # then we need to parse the checksum and construct it into
+  # double-space separated format.
+  elif echo "${checksum_content}" | grep -Eoq '^spark\-(.+)\: [A-Fa-f0-9 ]+$'; then
+    echo "${checksum_content}" |
+      # Trim all whitespace and newline, also transform to lowercase.
+      tr -d ' \n' | tr '[:upper:]' '[:lower:]' | xargs |
+      # Construct the double-space separated format.
+      sed -E 's/^(spark\-.+\.tgz)\:([a-f0-9]+)$/\2  \1/g'
+  else
+    fail "Checksum content is invalid. Can not parse the hash value."
+  fi
+}
+
+##################################################################
+# Download and normalize the sha checksum value.
+#
+# Arguments:
+#   $1 - Apache Spark version.
+#   $2 - Archive filename.
+# Outputs:
+#   Return a valid checksum value format separated by double space,
+#   e.g. <hash>  <filename>
+##################################################################
+download_sha_checksum() {
+  local spark_version="${1:-}"
+  local archive_filename="${2:-}"
+  local checksum_exts=({sha512,sha})
+  local archive_download_url checksum_content normalized_checksum_content
+
+  archive_download_url="$(construct_release_archive_url "${spark_version}" "${archive_filename}")"
+
+  for ext in "${checksum_exts[@]}"; do
+    if checksum_content="$(curl "${DEFAULT_CURL_OPTS[@]}" "${archive_download_url}.${ext}")"; then
+      break
+    fi
+  done
+
+  # Normalize downloaded checksum file content.
+  normalized_checksum_content="$(normalize_checksum "${checksum_content}")"
+  echo "${normalized_checksum_content}"
+}
+
+##################################################################
+# Validate Apache Spark binary archive file checksum using
+# sha-512 algorithm.
+#
+# Arguments:
+#   $1 - Apache spark version.
+#   $2 - Archive filepath.
+# Outputs:
+#   Return exit status code 0 when the target file checksum matches
+#   the hash from the checksum content.
+##################################################################
+validate_sha_checksum() {
+  local spark_version="${1:-}"
+  local archive_filepath="${2:-}"
+  local archive_filename="${archive_filename##*/}"
+  local checksum
+
+  # cd into ASDF_DOWNLOAD_PATH
+  cd "$(dirname "${archive_filepath}")"
+
+  checksum="$(download_sha_checksum "${spark_version}" "${archive_filename}")"
+  if ! echo "${checksum}" | shasum --algorithm "${DEFAULT_SHASUM_ALGORITHM}" --check; then
+    fail "Checksum validation failed! Abort installation."
   fi
 }
 
