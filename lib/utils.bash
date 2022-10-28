@@ -203,21 +203,19 @@ normalize_checksum() {
 # Download and normalize the sha checksum value.
 #
 # Arguments:
-#   $1 - Apache Spark version.
+#   $1 - Apache download URL.
 #   $2 - Archive filepath.
 # Outputs:
 #   Return a valid checksum value format separated by double space,
 #   e.g. <hash>  <filename>
 ##################################################################
 download_sha_checksum() {
-  local spark_version="${1:-}"
+  local archive_download_url="${1:-}"
   local archive_filepath="${2:-}"
   local archive_filename="${archive_filepath##*/}"
   # Some old spark archives use .sha extension instead of .sha512.
   local checksum_exts=('sha512' 'sha')
-  local archive_download_url checksum_content normalized_checksum_content
-
-  archive_download_url="$(construct_release_archive_url "${spark_version}" "${archive_filename}")"
+  local checksum_content normalized_checksum_content
 
   for ext in "${checksum_exts[@]}"; do
     if checksum_content="$(curl "${DEFAULT_CURL_OPTS[@]}" "${archive_download_url}.${ext}")"; then
@@ -244,14 +242,14 @@ value to true to skip this verification step."
 # Globals:
 #   ASDF_SPARK_SKIP_VERIFICATION - Skip checksum verification or not.
 # Arguments:
-#   $1 - Apache spark version.
+#   $1 - Archive download URL.
 #   $2 - Archive filepath.
 # Outputs:
 #   Return exit status code 0 when the target file checksum matches
 #   the hash from the checksum content.
 ##################################################################
 verify_sha_checksum() {
-  local spark_version="${1:-}"
+  local archive_download_url="${1:-}"
   local archive_filepath="${2:-}"
   local archive_filename="${archive_filepath##*/}"
   local skip_verification="${ASDF_SPARK_SKIP_VERIFICATION:-0}"
@@ -259,14 +257,15 @@ verify_sha_checksum() {
 
   # Fast return if ASDF_SPARK_SKIP_VERIFICATION is set to true.
   if [[ ! "${skip_verification}" =~ ^([nf0]|no|false)?$ ]]; then
-    return 0
+    echo "* Skip checksum verification as your request..."
+    return
   fi
 
   # cd into ASDF_DOWNLOAD_PATH
   cd "$(dirname "${archive_filepath}")"
 
   echo "* Verifying ${archive_filename}..."
-  checksum="$(download_sha_checksum "${spark_version}" "${archive_filepath}")"
+  checksum="$(download_sha_checksum "${archive_download_url}" "${archive_filepath}")"
   if ! echo "${checksum}" | shasum --algorithm "${DEFAULT_SHASUM_ALGORITHM}" --check; then
     fail "Checksum validation failed! Abort installation."
   fi
@@ -277,18 +276,35 @@ verify_sha_checksum() {
 # ASDF_DOWNLOAD_PATH.
 #
 # Arguments:
-#   $1 - Apache spark archive download URL.
-#   $2 - Apache spark archive target path.
+#   $1 - asdf install type.
+#   $2 - asdf download path.
+#   $3 - Apache Spark version.
 # Outputs:
 #   Exit code 0 if successfully downloading the archive file, else
 #   1 with error message.
 ##################################################################
 download_archive() {
-  local download_url="${1:-}"
-  local target_filepath="${2:-}"
+  local install_type="${1:-}"
+  local download_path="${2:-}"
+  local spark_version="${3:-}"
+  # Apache Spark specific version archive homepage, e.g. https://archive.apache.org/dist/spark/spark-3.3.1
+  local spark_archives_url="${SPARK_ARCHIVE_URL}/spark-${spark_version}"
 
-  echo "* Downloading ${target_filepath##*/}..."
-  curl -fSL# -o "${target_filepath}" -C - "${download_url}" || fail "Could not download ${download_url}"
+  local spark_archive_download_page_content spark_archive_filename spark_archive_filepath spark_archive_download_url
+
+  # Find the correct Apache Spark version from the archive homepage.
+  spark_archive_download_page_content="$(curl "${DEFAULT_CURL_OPTS[@]}" "${spark_archives_url}")"
+  spark_archive_filename="$(
+    get_release_archive_filename "${install_type}" "${spark_version}" "${spark_archive_download_page_content}"
+  )"
+  spark_archive_filepath="${download_path}/${spark_archive_filename}"
+  # Apache Spark archive download URL, e.g. https://archive.apache.org/dist/spark/spark-3.3.1/spark-3.3.1-bin-hadoop3.tgz
+  spark_archive_download_url="$(construct_release_archive_url "${spark_version}" "${spark_archive_filename}")"
+
+  echo "* Downloading ${spark_archive_filename}..."
+  curl -fSL# -o "${spark_archive_filepath}" -C - "${spark_archive_download_url}" || fail "Could not download ${spark_archive_download_url}"
+
+  verify_sha_checksum "${spark_archive_download_url}" "${spark_archive_filepath}"
 }
 
 ##################################################################
