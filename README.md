@@ -19,11 +19,13 @@
 
 - `java`: JDK, you can install it using [asdf-java](https://github.com/halcyon/asdf-java) plugin.
 - `bash`, `curl`, `tar`: Generic POSIX utilities.
+- `shasum`: Verify archive checksum.
 
 # Environment Variables
 
 - `ASDF_SPARK_HADOOP_VERSION`: Set this environment variable to use custom hadoop version from the Spark archive download page, e.g. `ASDF_SPARK_HADOOP_VERSION=3 asdf install spark 3.3.0`. By default, this plugin will pick the latest hadoop version from the archive page if this environment variable is not being set.
 - `ASDF_SPARK_WITHOUT_HADOOP`: Set this environment variable to download spark binary archive without hadoop support, e.g. `ASDF_SPARK_WITHOUT_HADOOP=1 asdf install spark 3.3.0`. By default, this plugin will download spark archive with hadoop support if this environment variable is not being set.
+- `ASDF_SPARK_SKIP_VERIFICATION`: Set this environment variable to skip archive checksum verification step, e.g. `ASDF_SPARK_SKIP_VERIFICATION=1 asdf install spark 3.3.0`. By default, this plugin will verify the archive checksum if this environment variable is not being set.
 
 # Install
 
