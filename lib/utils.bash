@@ -267,6 +267,7 @@ verify_sha_checksum() {
   echo "* Verifying ${archive_filename}..."
   checksum="$(download_sha_checksum "${archive_download_url}" "${archive_filepath}")"
   if ! echo "${checksum}" | shasum --algorithm "${DEFAULT_SHASUM_ALGORITHM}" --check; then
+    rm "${archive_filepath}"
     fail "Checksum validation failed! Abort installation."
   fi
 }
@@ -305,6 +306,12 @@ download_archive() {
   curl -fSL# -o "${spark_archive_filepath}" -C - "${spark_archive_download_url}" || fail "Could not download ${spark_archive_download_url}"
 
   verify_sha_checksum "${spark_archive_download_url}" "${spark_archive_filepath}"
+
+  #  Extract contents of tar.gz file into the download directory.
+  tar -xzf "${spark_archive_filepath}" -C "${download_path}" --strip-components=1 || fail "Could not extract ${spark_archive_filepath}"
+
+  # Remove the tar.gz file since we don't need to keep it.
+  rm "${spark_archive_filepath}"
 }
 
 ##################################################################
