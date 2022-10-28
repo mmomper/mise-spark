@@ -244,7 +244,7 @@ download_sha_checksum() {
 validate_sha_checksum() {
   local spark_version="${1:-}"
   local archive_filepath="${2:-}"
-  local archive_filename="${archive_filename##*/}"
+  local archive_filename="${archive_filepath##*/}"
   local skip_verification="${ASDF_SPARK_SKIP_VERIFICATION:-0}"
   local checksum
 
@@ -256,6 +256,7 @@ validate_sha_checksum() {
   # cd into ASDF_DOWNLOAD_PATH
   cd "$(dirname "${archive_filepath}")"
 
+  echo "* Verifying ${archive_filename}..."
   checksum="$(download_sha_checksum "${spark_version}" "${archive_filename}")"
   if ! echo "${checksum}" | shasum --algorithm "${DEFAULT_SHASUM_ALGORITHM}" --check; then
     fail "Checksum validation failed! Abort installation."
