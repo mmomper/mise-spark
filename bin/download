@@ -7,21 +7,11 @@ CURRENT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 # shellcheck source=../lib/utils.bash
 source "${CURRENT_DIR}/../lib/utils.bash"
 
+# Create ASDF_DOWNLOAD directory if not exist.
 mkdir -p "${ASDF_DOWNLOAD_PATH}"
 
-spark_archives_url="${SPARK_ARCHIVE_URL}/spark-${ASDF_INSTALL_VERSION}"
-spark_archive_download_page_content="$(curl "${DEFAULT_CURL_OPTS[@]}" "${spark_archives_url}")"
-spark_archive_filename="$(
-  get_release_archive_filename "${ASDF_INSTALL_TYPE}" "${ASDF_INSTALL_VERSION}" "${spark_archive_download_page_content}"
-)"
-spark_archive_filepath="${ASDF_DOWNLOAD_PATH}/${spark_archive_filename}"
-spark_archive_download_url="$(construct_release_archive_url "${ASDF_INSTALL_VERSION}" "${spark_archive_filename}")"
-
-# Download tar.gz file to the download directory.
-download_archive "${spark_archive_download_url}" "${spark_archive_filepath}"
-
-# Verify archive before extracting.
-verify_sha_checksum "${ASDF_INSTALL_VERSION}" "${spark_archive_filepath}"
+# Download and verify tar.gz file inside the download directory.
+download_archive "${ASDF_INSTALL_TYPE}" "${ASDF_DOWNLOAD_PATH}" "${ASDF_INSTALL_VERSION}"
 
 #  Extract contents of tar.gz file into the download directory.
 tar -xzf "${spark_archive_filepath}" -C "${ASDF_DOWNLOAD_PATH}" --strip-components=1 || fail "Could not extract ${spark_archive_filepath}"
