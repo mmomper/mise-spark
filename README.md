@@ -60,14 +60,18 @@ install & manage versions.
 
 ## How to set `SPARK_HOME` environment variable?
 
-You can set `SPARK_HOME` environment variable inside your shell configuration file (`.bashrc` for bash, `.zshrc` for zsh, etc)
-using `asdf where` command. Please ensure that you have sourced `asdf` before adding this environment variable.
+You can set `SPARK_HOME` environment variable inside your shell configuration file. Currently, this plugin only supports `bash` and `zsh` shells. Please note that you must place below scripts after sourcing the asdf-vm since these scripts require `asdf where` command.
+
+For `zsh`, please add this script inside your `.zshrc` file.
 
 ```shell
-# Source asdf.sh first before exporting the environment variable.
-source $HOME/.asdf/asdf.sh
+source ~/.asdf/plugins/spark/set-spark-home.zsh
+```
 
-export SPARK_HOME="$(asdf where spark)"
+For `bash`, please add this script inside your `.bashrc` file.
+
+```shell
+source ~/.asdf/plugins/spark/set-spark-home.bash
 ```
 
 # Contributing
