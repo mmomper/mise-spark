@@ -4,7 +4,7 @@
 
 set -euo pipefail
 
-UTIL_TEST_DIR="$(cd "$(dirname "$BATS_TEST_FILENAME")" &>/dev/null && pwd)"
+UTIL_TEST_DIR="$(cd "$(dirname "${BATS_TEST_FILENAME}")" &>/dev/null && pwd)"
 
 load "${UTIL_TEST_DIR}/../lib/utils.bash"
 load "${UTIL_TEST_DIR}/resources/mock_wrapper.bash"
