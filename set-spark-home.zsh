@@ -11,4 +11,4 @@ asdf_set_spark_home() {
   fi
 }
 
-autload -U add-zsh-hook && add-zsh-hook precmd asdf_set_spark_home
+autoload -U add-zsh-hook && add-zsh-hook precmd asdf_set_spark_home
