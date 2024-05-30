@@ -166,6 +166,10 @@ spark-3.3.0-bin-without-hadoop.tgz"
   [ "${status}" -eq 0 ]
   [ "${output}" = "spark-${DEFAULT_SPARK_VERSION}-bin-without-hadoop.tgz" ]
 
+  ASDF_SPARK_WITHOUT_HADOOP=y run get_release_archive_filename "version" "${DEFAULT_SPARK_VERSION}" "${spark_330_download_html_content_mock:-}"
+  [ "${status}" -eq 0 ]
+  [ "${output}" = "spark-${DEFAULT_SPARK_VERSION}-bin-without-hadoop.tgz" ]
+
   ASDF_SPARK_WITHOUT_HADOOP=yes run get_release_archive_filename "version" "${DEFAULT_SPARK_VERSION}" "${spark_330_download_html_content_mock:-}"
   [ "${status}" -eq 0 ]
   [ "${output}" = "spark-${DEFAULT_SPARK_VERSION}-bin-without-hadoop.tgz" ]

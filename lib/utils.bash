@@ -13,6 +13,10 @@ DEFAULT_CURL_OPTS=(-fsSL)
 DEFAULT_SPARK_VERSION='3.3.0'
 DEFAULT_SHASUM_ALGORITHM=512
 
+echoerr() {
+  echo "$1" >&2
+}
+
 ##################################################
 # Print error message with generalized format.
 #
@@ -110,8 +114,8 @@ get_release_archive_filename() {
   local install_type="${1:-'version'}"
   local spark_version="${2:-"${DEFAULT_SPARK_VERSION}"}"
   local archive_download_content="${3:-}"
-  local custom_hadoop_version="${ASDF_SPARK_HADOOP_VERSION:-}"
-  local without_hadoop="${ASDF_SPARK_WITHOUT_HADOOP:-0}"
+  local custom_hadoop_version="${MISE_TOOL_OPTS__HADOOP_VERSION:-${ASDF_SPARK_HADOOP_VERSION:-}}"
+  local without_hadoop="${MISE_TOOL_OPTS__WITHOUT_HADOOP:-${ASDF_SPARK_WITHOUT_HADOOP:-0}}"
 
   local available_archives available_archives_array without_hadoop_archive_filename \
     with_hadoop_archive_filename available_archives_array_length
@@ -123,7 +127,7 @@ get_release_archive_filename() {
   available_archives="$(scan_available_archives "${spark_version}" "${archive_download_content}")"
 
   # Get without-hadoop archive filename
-  if [[ ! "${without_hadoop}" =~ ^([nf0]|no|false)?$ ]]; then
+  if [[ "${without_hadoop}" =~ ^([yt1]|yes|true)?$ ]]; then
     without_hadoop_archive_filename="$({ grep "spark-${spark_version}-bin-without-hadoop\.tgz" <<<"${available_archives}" || :; } | xargs)"
     if [[ -n "${without_hadoop_archive_filename}" ]]; then
       echo "${without_hadoop_archive_filename}"
@@ -252,11 +256,11 @@ verify_sha_checksum() {
   local archive_download_url="${1:-}"
   local archive_filepath="${2:-}"
   local archive_filename="${archive_filepath##*/}"
-  local skip_verification="${ASDF_SPARK_SKIP_VERIFICATION:-0}"
+  local skip_verification="${MISE_TOOL_OPTS__SKIP_VERIFICATION:-${ASDF_SPARK_SKIP_VERIFICATION:-0}}"
   local checksum
 
   # Fast return if ASDF_SPARK_SKIP_VERIFICATION is set to true.
-  if [[ ! "${skip_verification}" =~ ^([nf0]|no|false)?$ ]]; then
+  if [[ "${skip_verification}" =~ ^([yt1]|yes|true)?$ ]]; then
     echo "* Skip checksum verification as your request..."
     return
   fi
@@ -270,6 +274,51 @@ verify_sha_checksum() {
     rm "${archive_filepath}"
     fail "Checksum validation failed! Abort installation."
   fi
+}
+
+write_pom() {
+  local spark_version=$1
+
+  cat >pom.xml <<EOL
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>org.sonatype.mavenbook.simple</groupId>
+    <artifactId>simple</artifactId>
+    <packaging>jar</packaging>
+    <version>1.0-SNAPSHOT</version>
+    <name>simple</name>
+    <url>http://maven.apache.org</url>
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-hadoop-cloud_2.12</artifactId>
+            <version>$spark_version</version>
+        </dependency>
+    </dependencies>
+</project>
+EOL
+
+}
+
+download_cloud_jars() {
+  local download_path=$1
+  local spark_version=$2
+
+  echo "downloading jars"
+
+  if ! command -v mvn &>/dev/null; then
+    echoerr maven is missing.
+    return 1
+  fi
+
+  write_pom $spark_version
+
+  mvn dependency:copy-dependencies -DoutputDirectory=$download_path/jars
+
+  rm -rf pom.xml
 }
 
 ##################################################################
@@ -288,6 +337,8 @@ download_archive() {
   local install_type="${1:-}"
   local download_path="${2:-}"
   local spark_version="${3:-}"
+
+  local with_cloud_jars="${MISE_TOOL_OPTS__WITH_CLOUD_JARS:-${ASDF_SPARK_WITH_CLOUD_JARS:-0}}"
   # Apache Spark specific version archive homepage, e.g. https://archive.apache.org/dist/spark/spark-3.3.1
   local spark_archives_url="${SPARK_ARCHIVE_URL}/spark-${spark_version}"
 
@@ -310,6 +361,10 @@ download_archive() {
   #  Extract contents of tar.gz file into the download directory.
   tar -xzf "${spark_archive_filepath}" -C "${download_path}" --strip-components=1 || fail "Could not extract ${spark_archive_filepath}"
 
+  if [[ "${with_cloud_jars}" =~ ^([yt1]|yes|true)?$ ]]; then
+    download_cloud_jars $download_path $spark_version
+  fi
+
   # Remove the tar.gz file since we don't need to keep it.
   rm "${spark_archive_filepath}"
 }
@@ -331,6 +386,8 @@ install_version() {
   local version="${2:-}"
   local install_path="${3:-}"
 
+  local without_hadoop="${MISE_TOOL_OPTS__WITHOUT_HADOOP:-${ASDF_SPARK_WITHOUT_HADOOP:-0}}"
+
   local tool_cmd
 
   if [[ "${install_type}" != "version" ]]; then
@@ -345,6 +402,10 @@ install_version() {
     [[ -x "${install_path}/bin/${tool_cmd}" ]] || fail "Expected ${install_path}/bin/${tool_cmd} to be executable."
 
     echo "${TOOL_NAME}-${version} installation was successful!"
+
+    if [[ "${without_hadoop}" =~ ^([yt1]|yes|true)?$ ]]; then
+      echo "hadoop_classpath=\$(hadoop classpath)" >>"$install_path/conf/spark-env.sh"
+    fi
   ) || (
     rm -rf "${install_path}"
     fail "An error occurred while installing ${TOOL_NAME}-${version}."
